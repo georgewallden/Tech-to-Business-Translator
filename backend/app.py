@@ -2,9 +2,13 @@ import boto3
 import botocore
 import json
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 
 # Initialize the Flask application
 app = Flask(__name__)
+
+# Allow requests from our frontend development server origin
+CORS(app, resources={r"/translate": {"origins": "http://localhost:5173"}})
 
 # Define a simple route for health checks
 @app.route('/')

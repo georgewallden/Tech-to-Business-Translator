@@ -15,17 +15,27 @@ function App() {
     setOutputText('');      // Clear previous output
 
     try {
-      // --- API Call Placeholder ---
-      // IMPORTANT: This is where we will call our backend API later.
-      // For now, we just log to the console and set dummy output.
-      console.log("Submitting technical text:", inputText);
+      
+       // Define the URL for our local backend endpoint
+       const backendUrl = 'http://localhost:5001/translate';
 
-      // Simulate network delay for testing the loading UI
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Wait 1.5 seconds
-
-      // Dummy response - replace this later with actual API call result
-      setOutputText(`(Frontend dummy response) Business explanation for: "${inputText}" will appear here.`);
-      // --- End Placeholder ---
+       console.log("INFO: Sending text to backend:", inputText);
+ 
+       // Make the POST request using axios
+       // Send the input text in the request body as JSON
+       const response = await axios.post(backendUrl, {
+         text: inputText, // The key 'text' must match what the Flask backend expects
+       });
+ 
+       // Set the output text state variable with the data received from the backend
+       console.log("INFO: Received response from backend:", response.data);
+       if (response.data && response.data.translated_text) {
+           setOutputText(response.data.translated_text);
+       } else {
+           // Handle cases where backend might not return the expected field
+           console.error("ERROR: Unexpected response format from backend:", response.data);
+           setOutputText("Error: Received unexpected data from server.");
+       }
 
     } catch (error) {
       console.error("Error submitting text:", error);
