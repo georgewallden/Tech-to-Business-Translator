@@ -40,7 +40,7 @@ function App() {
   // The JSX structure of our component (what gets rendered)
   return (
     <div className="App">
-      <h1>Tech Speak <span style={{color: '#4CAF50'}}>to</span> Business Speak Translator</h1> {/* Added some basic inline style */}
+      <h1>Tech <span style={{color: '#4CAF50'}}>to</span> Business Translator</h1> {/* Added some basic inline style */}
 
       {/* The form for input */}
       <form onSubmit={handleSubmit}>
