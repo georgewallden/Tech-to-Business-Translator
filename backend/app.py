@@ -3,6 +3,7 @@ import botocore
 import json
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import os
 
 # Initialize the Flask application
 app = Flask(__name__)
@@ -10,23 +11,51 @@ app = Flask(__name__)
 # Allow requests from our frontend development server origin
 CORS(app, resources={r"/translate": {"origins": "http://localhost:5173"}})
 
+bedrock_runtime = None # Initialize to None
+
+try:
+    # Explicitly get credentials and region from environment variables
+    aws_access_key_id = os.environ.get('AWS_ACCESS_KEY_ID')
+    aws_secret_access_key = os.environ.get('AWS_SECRET_ACCESS_KEY')
+    aws_region = os.environ.get('AWS_REGION')
+    aws_session_token = os.environ.get('AWS_SESSION_TOKEN') # Include if you might use temporary creds
+
+    print(f"DEBUG: AWS_ACCESS_KEY_ID found: {'Yes' if aws_access_key_id else 'No'}")
+    print(f"DEBUG: AWS_SECRET_ACCESS_KEY found: {'Yes' if aws_secret_access_key else 'No'}")
+    print(f"DEBUG: AWS_REGION found: {aws_region}")
+    print(f"DEBUG: AWS_SESSION_TOKEN found: {'Yes' if aws_session_token else 'No'}")
+
+
+    # Check if essential env vars are present
+    if not aws_access_key_id or not aws_secret_access_key or not aws_region:
+        print("FATAL ERROR: Missing one or more required AWS environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION).")
+        raise ValueError("Missing required AWS environment variables") # Raise an explicit error
+
+
+    # Create a Boto3 session explicitly with the env vars
+    # This session will be used by the client
+    session = boto3.Session(
+        aws_access_key_id=aws_access_key_id,
+        aws_secret_access_key=aws_secret_access_key,
+        aws_session_token=aws_session_token, # Pass token if it exists
+        region_name=aws_region
+    )
+    print("INFO: Boto3 session created successfully.")
+
+    # Create the Bedrock runtime client using the session
+    bedrock_runtime = session.client('bedrock-runtime')
+    print("INFO: Bedrock runtime client created successfully from session.")
+
+except Exception as e:
+    # Catch any errors during session or client creation
+    print(f"FATAL ERROR: Could not initialize AWS Bedrock client: {e}")
+    # bedrock_runtime remains None
+
 # Define a simple route for health checks
 @app.route('/')
 def health_check():
     """Provides a simple health check endpoint."""
     return jsonify({"status": "ok", "message": "Backend is running"}), 200
-
-# Create a Bedrock Runtime client
-try:
-    # Ensure you have AWS credentials configured (e.g., via 'aws configure' or environment variables)
-    # Also ensure the region set in your AWS config supports Bedrock and the models you want to use.
-    bedrock_runtime = boto3.client('bedrock-runtime')
-    print("INFO: Bedrock client created successfully.") # Optional: add a print statement for confirmation
-except Exception as e:
-    # Handle potential client creation errors (e.g., missing credentials, invalid region)
-    print(f"ERROR: Could not create Bedrock client: {e}")
-    # Depending on your error handling strategy, you might exit or disable functionality
-    bedrock_runtime = None # Set to None so checks later can fail gracefully
 
 @app.route('/translate', methods=['POST'])
 def translate_text():
