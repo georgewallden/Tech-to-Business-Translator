@@ -11,22 +11,43 @@ provider "aws" {
   region = "us-east-1"
 }
 
+# --- ECR container repo for the docker container ---
 resource "aws_ecr_repository" "backend_repo" {
-  # The name of the ECR repository. This should match the name we used when building the Docker image.
   name = "tech-translator-backend"
 
-  # Optional: Configuration for image tag mutability (prevents overwriting tags)
   image_tag_mutability = "IMMUTABLE"
 
-  # Optional: Configuration for image scanning upon push
   image_scanning_configuration {
     scan_on_push = true
   }
 
-  # Optional: Add tags for identification and cost allocation
   tags = {
     Project     = "TechToBusinessTranslator"
     ManagedBy   = "Terraform"
-    Environment = "Development" # Or Production, Staging, etc.
+    Environment = "Development" 
+  }
+}
+
+# --- IAM Role for App Runner Service ---
+resource "aws_iam_role" "apprunner_service_role" {
+  name = "tech-translator-apprunner-service-role" 
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "tasks.apprunner.amazonaws.com" # This specific principal allows App Runner tasks
+        }
+      },
+    ]
+  })
+
+  tags = {
+    Project     = "TechToBusinessTranslator"
+    ManagedBy   = "Terraform"
+    Environment = "Development"
   }
 }

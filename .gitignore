@@ -1,0 +1,13 @@
+# Ignore Terraform files
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# Ignore Node.js dependencies (usually in frontend)
+node_modules/
+
+# Ignore Python virtual environments and cache (usually in backend)
+venv/
+__pycache__/
+*.pyc
