@@ -58,7 +58,7 @@ resource "aws_iam_policy" "apprunner_service_policy" {
            "dynamodb:PutItem",
            "dynamodb:UpdateItem" # Might use UpdateItem for counter
          ]
-         Resource = "*" # Allowing access to any table in the region for now (will restrict later)
+         Resource = "${aws_dynamodb_table.sessions_table.arn}"
        },
        # Permission to publish messages to the SNS topic (for visit notifications, generic for now)
        {
@@ -66,7 +66,7 @@ resource "aws_iam_policy" "apprunner_service_policy" {
          Action = [
            "sns:Publish"
          ]
-         Resource = "*" 
+         Resource = "${aws_sns_topic.visit_notification_topic.arn}" 
        },
       # Permission to write logs to CloudWatch Logs (required for App Runner)
       {
