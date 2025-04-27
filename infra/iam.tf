@@ -1,33 +1,3 @@
-terraform {
-  required_providers {
-    aws = {
-      source = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-  }
-}
-
-provider "aws" {
-  region = "us-east-1"
-}
-
-# --- ECR container repo for the docker container ---
-resource "aws_ecr_repository" "backend_repo" {
-  name = "tech-translator-backend"
-
-  image_tag_mutability = "IMMUTABLE"
-
-  image_scanning_configuration {
-    scan_on_push = true
-  }
-
-  tags = {
-    Project     = "TechToBusinessTranslator"
-    ManagedBy   = "Terraform"
-    Environment = "Development" 
-  }
-}
-
 # --- IAM Role for App Runner Service ---
 resource "aws_iam_role" "apprunner_service_role" {
   name = "tech-translator-apprunner-service-role" 
@@ -128,4 +98,3 @@ resource "aws_iam_role_policy_attachment" "apprunner_service_attachment" {
   role       = aws_iam_role.apprunner_service_role.name # Reference the name of the role we defined
   policy_arn = aws_iam_policy.apprunner_service_policy.arn # Reference the ARN of the policy we defined
 }
-
