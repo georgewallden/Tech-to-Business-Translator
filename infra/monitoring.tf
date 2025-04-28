@@ -24,3 +24,24 @@ resource "aws_sns_topic_subscription" "email_subscription" {
   # The endpoint (the email address to send notifications to).
   endpoint = "GeorgeWallden@outlook.com" # <-- **Replace with your actual email if different**
 }
+
+# --- AWS CloudWatch Log Group for App Runner Service Logs ---
+resource "aws_cloudwatch_log_group" "apprunner_logs" {
+  # The name pattern App Runner uses for its default log group
+  name = "/aws/apprunner/${aws_apprunner_service.backend_service.service_name}" # Reference the service name
+
+  # Optional: Set a retention policy (e.g., 90 days)
+  # retention_in_days = 90
+
+  tags = {
+    Project     = "TechToBusinessTranslator"
+    ManagedBy   = "Terraform"
+    Service     = "AppRunnerBackendLogs"
+    Environment = "Development" # Or appropriate environment tag
+  }
+
+  # Depends on the App Runner service being created
+  depends_on = [
+    aws_apprunner_service.backend_service
+  ]
+}
