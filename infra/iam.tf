@@ -9,7 +9,10 @@ resource "aws_iam_role" "apprunner_service_role" {
         Action = "sts:AssumeRole"
         Effect = "Allow"
         Principal = {
-          Service = "tasks.apprunner.amazonaws.com" # This specific principal allows App Runner tasks
+          Service = [ 
+            "tasks.apprunner.amazonaws.com", # This specific principal allows App Runner tasks
+            "build.apprunner.amazonaws.com"
+          ]
         }
       },
     ]
@@ -20,6 +23,37 @@ resource "aws_iam_role" "apprunner_service_role" {
     ManagedBy   = "Terraform"
     Environment = "Development"
   }
+}
+
+# --- IAM Role for App Runner *Access* (pulling image from private ECR) ------
+resource "aws_iam_role" "apprunner_ecr_access_role" {
+  name = "tech-translator-apprunner-ecr-access-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action    = "sts:AssumeRole"
+        Effect    = "Allow"
+        Principal = {
+          # *** Build / deploy side *** – pulls your image from ECR
+          Service = "build.apprunner.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = {
+    Project     = "TechToBusinessTranslator"
+    ManagedBy   = "Terraform"
+    Environment = "Development"
+  }
+}
+
+# --- AWS-Managed policy attachment for ECR access role ---------------------
+resource "aws_iam_role_policy_attachment" "apprunner_ecr_access_attachment" {
+  role       = aws_iam_role.apprunner_ecr_access_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess"
 }
 
 # --- AWS IAM Policy for App Runner Service Role ---
