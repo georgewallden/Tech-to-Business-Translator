@@ -85,3 +85,15 @@ resource "aws_apprunner_service" "backend_service" {
   ]
 }
 
+# --- AWS App Runner Custom Domain Association ---
+# Associates the custom domain and validated ACM certificate with the App Runner service.
+resource "aws_apprunner_custom_domain_association" "backend_domain_association" {
+  service_arn = aws_apprunner_service.backend_service.arn                  # Reference the ARN of your App Runner service
+  domain_name = aws_acm_certificate.custom_domain_cert.domain_name         # Reference the domain name from the certificate
+
+  # Ensure the App Runner service and the certificate validation are complete first
+  depends_on = [
+    aws_apprunner_service.backend_service,
+    aws_acm_certificate_validation.custom_domain_cert_validation,
+  ]
+}

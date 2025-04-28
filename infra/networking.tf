@@ -56,3 +56,25 @@ resource "aws_acm_certificate_validation" "custom_domain_cert_validation" {
     aws_route53_record.acm_validation_record,
   ]
 }
+
+# --- AWS Route 53 CNAME Record for App Runner Endpoint ---
+# Points the custom domain (translator-api.georgewallden.com) to the App Runner service endpoint.
+resource "aws_route53_record" "backend_domain_cname" {
+  zone_id = data.aws_route53_zone.hosted_zone.zone_id # Use your hosted zone
+
+  # The name of the custom domain
+  name    = aws_apprunner_custom_domain_association.backend_domain_association.domain_name # Use the domain name from the association
+
+  # It's a CNAME record
+  type    = "CNAME"
+
+  # The target is the App Runner service endpoint (provided by the association resource)
+  records = [aws_apprunner_custom_domain_association.backend_domain_association.dns_target] # Records is a list
+
+  ttl     = 300 # A reasonable TTL for a CNAME
+
+  # Ensure the domain association is complete before creating this record
+  depends_on = [
+    aws_apprunner_custom_domain_association.backend_domain_association,
+  ]
+}
